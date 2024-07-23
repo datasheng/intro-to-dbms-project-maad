@@ -1,10 +1,6 @@
 {
   "name": "backend",
   "version": "1.0.0",
-<<<<<<< HEAD
-=======
-  "description": "",
->>>>>>> c5c391d49468f76c96ce8bb31bd3c0b4903a98c6
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -14,18 +10,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-<<<<<<< HEAD
   "description": "",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "mysql": "^2.18.1",
-=======
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "mysql2": "^3.10.3",
->>>>>>> c5c391d49468f76c96ce8bb31bd3c0b4903a98c6
     "nodemon": "^3.1.4"
   }
 }

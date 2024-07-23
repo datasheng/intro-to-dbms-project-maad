@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from 'react';
 
 import {
@@ -41,8 +40,6 @@ function App() {
 export default App;
 
 
-=======
->>>>>>> c5c391d49468f76c96ce8bb31bd3c0b4903a98c6
 /**import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home"
 import Login from "./pages/Login";
