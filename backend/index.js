@@ -31,8 +31,8 @@ app.get("/books", (req,res)=>{
 })
 
 // Fetch students data - works
-app.get("/students", (req, res) => {
-    const q = "SELECT * FROM students";
+app.get("/student", (req, res) => {
+    const q = "SELECT * FROM student";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
         return res.json(data);
@@ -40,8 +40,8 @@ app.get("/students", (req, res) => {
 });
 
 //Fetch courses data
-app.get("/courses", (req, res) => {
-    const q = "SELECT * FROM courses";
+app.get("/course", (req, res) => {
+    const q = "SELECT * FROM course";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
         return res.json(data);
@@ -49,8 +49,8 @@ app.get("/courses", (req, res) => {
 });
 
 // Fetch instructors data 
-app.get("/instructors", (req, res) => {
-    const q = "SELECT * FROM instructors";
+app.get("/instructor", (req, res) => {
+    const q = "SELECT * FROM instructor";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
         return res.json(data);
@@ -58,8 +58,8 @@ app.get("/instructors", (req, res) => {
 });
 
 // Fetch registration data 
-app.get("/registrations", (req, res) => {
-    const q = "SELECT * FROM registrations";
+app.get("/registration", (req, res) => {
+    const q = "SELECT * FROM registration";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
         return res.json(data);
@@ -67,8 +67,8 @@ app.get("/registrations", (req, res) => {
 });
 
 // Fetch sections data 
-app.get("/sections", (req, res) => {
-    const q = "SELECT * FROM sections";
+app.get("/section", (req, res) => {
+    const q = "SELECT * FROM section";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
         return res.json(data);
