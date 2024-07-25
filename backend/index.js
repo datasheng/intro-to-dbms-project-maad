@@ -21,7 +21,7 @@ app.get("/", (req,res)=>{
     res.json("hello it's we are backend!")
 })
 
-//it works!! Exces Books SQL data example
+//it test function, works!! Exces Books SQL data example
 app.get("/books", (req,res)=>{
     const q = "SELECT * FROM books"
     db.query(q,(err,data)=>{
@@ -75,6 +75,20 @@ app.get("/section", (req, res) => {
     });
 });
 
+
+// Login route
+app.post("/login", (req, res) => {
+    const { studentID, fullName, major } = req.body;
+    const q = "SELECT * FROM student WHERE studentID = ? AND Name = ? AND Majors = ?";
+    db.query(q, [studentID, fullName, major], (err, data) => {
+        if (err) return res.json(err);
+        if (data.length > 0) {
+            return res.json({ status: "success", data: data[0] });
+        } else {
+            return res.json({ status: "fail", message: "Invalid credentials" });
+        }
+    });
+});
 
 
 app.post("/books", (req,res)=>{
