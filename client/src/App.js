@@ -13,7 +13,7 @@ import Course from "./pages/Course.jsx";
 import Instructor from "./pages/Instructor.jsx"
 import Registration from "./pages/Registration.jsx";
 import Section from "./pages/Section.jsx";
-
+import Login from './pages/Login';
 
 
 
@@ -22,8 +22,9 @@ function App() {
     <div className="App">
      <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/" element={<Books />} />
+          <Route path="/books" element={<Books />} />
           <Route path="/student" element={<Student />} />
           <Route path="/course" element={<Course />} />
           <Route path="/instructor" element={<Instructor />} />
