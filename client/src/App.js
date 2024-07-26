@@ -1,3 +1,115 @@
+import React, { useState } from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
+
+import Home from "./pages/Home";
+import Student from "./pages/Student.jsx";
+import Books from "./pages/Books";
+import Course from "./pages/Course.jsx";
+import Instructor from "./pages/Instructor.jsx";
+import Registration from "./pages/Registration.jsx";
+import Section from "./pages/Section.jsx";
+import Login from './pages/Login';
+import Drop from './pages/Drop';
+import Schedule from './pages/Schedule';
+//import NewSchedule from './NewSchedule'; // Create this component
+function App() {
+  const [student, setStudent] = useState(null);
+
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/books" element={<Books />} />
+          <Route path="/student" element={<Student />} />
+          <Route path="/course" element={<Course />} />
+          <Route path="/instructor" element={<Instructor />} />
+          
+          <Route path="/registration" element={<Registration />} />
+          <Route path="/section" element={<Section />} />
+          <Route path="/schedule" element={<Schedule />} />
+          {student && (
+            <Route path="/drop" element={<Drop studentID={student.studentID} />} />
+          )}
+        </Routes>
+      </BrowserRouter>
+    </div>
+  );
+}
+
+export default App;
+
+
+/*
+import React, { useState, useEffect } from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
+import axios from 'axios';
+
+import Home from "./pages/Home";
+import Student from "./pages/Student.jsx";
+import Books from "./pages/Books";
+import Course from "./pages/Course.jsx";
+import Instructor from "./pages/Instructor.jsx";
+import Registration from "./pages/Registration.jsx";
+import Section from "./pages/Section.jsx";
+import Login from './pages/Login';
+import Drop from './pages/Drop';
+
+function App() {
+  const [student, setStudent] = useState(null);
+
+  const fetchStudentData = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/student/1'); // Fetch student with ID 1 as an example
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const fetchStudent = async () => {
+      const studentData = await fetchStudentData();
+      setStudent(studentData);
+    };
+    fetchStudent();
+  }, []);
+
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/books" element={<Books />} />
+          <Route path="/student" element={<Student />} />
+          <Route path="/course" element={<Course />} />
+          <Route path="/instructor" element={<Instructor />} />
+          <Route path="/registration" element={<Registration />} />
+          <Route path="/section" element={<Section />} />
+          {student && (
+            <Route path="/drop" element={<Drop studentID={student.studentID} />} />
+          )}
+        </Routes>
+      </BrowserRouter>
+    </div>
+  );
+}
+
+export default App;
+
+*/
+/*
 import React from 'react';
 
 import {
@@ -14,7 +126,7 @@ import Instructor from "./pages/Instructor.jsx"
 import Registration from "./pages/Registration.jsx";
 import Section from "./pages/Section.jsx";
 import Login from './pages/Login';
-
+import Drop from './pages/Drop';
 
 
 function App() {
@@ -30,7 +142,7 @@ function App() {
           <Route path="/instructor" element={<Instructor />} />
           <Route path="/registration" element={<Registration />} />
           <Route path="/section" element={<Section />} />
-          
+          <Route path="/drop" element={<Drop studentID={student.studentID} />} />
         </Routes>
       </BrowserRouter>
       
@@ -41,26 +153,4 @@ function App() {
 export default App;
 
 
-/**import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home"
-import Login from "./pages/Login";
-import Schedule from "./pages/Schedule";
-import UpdateCourse from "./pages/UpdateCourse";
-import "./style.css"
-
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Books/>}/>
-          <Route path="/add" element={<Add/>}/>
-          <Route path="/update/:id" element={<Update/>}/>
-        </Routes>
-      </BrowserRouter>
-    </div>
-  );
-}
-
-export default App;
 */
