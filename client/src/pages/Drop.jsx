@@ -1,51 +1,53 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Drop = ({ studentID }) => {
-    const [courses, setCourses] = useState([]);
-    const [selectedCourse, setSelectedCourse] = useState('');
+const Drop = () => {
+    const [enrolledCourses, setEnrolledCourses] = useState([]);
 
     useEffect(() => {
-        const fetchCourses = async () => {
+        const fetchEnrolledCourses = async () => {
             try {
-                const res = await axios.get(`http://localhost:3000/student/${studentID}/courses`);
-                setCourses(res.data);
+                const studentID = localStorage.getItem('studentID');
+                console.log("Fetching enrolled courses for student ID:", studentID); // Debug log
+                const res = await axios.get(`http://localhost:3000/enrolled-courses/${studentID}`);
+                console.log("Fetched enrolled courses:", res.data); // Debug log
+                setEnrolledCourses(res.data);
             } catch (err) {
-                console.log(err);
+                console.error("Error fetching enrolled courses:", err); // Debug log
             }
         };
-        fetchCourses();
-    }, [studentID]);
+        fetchEnrolledCourses();
+    }, []);
 
-    const handleDrop = async () => {
+    const handleDropCourse = async (sectionID) => {
         try {
-            await axios.post(`http://localhost:3000/student/${studentID}/drop`, { sectionID: selectedCourse });
-            setCourses(courses.filter(course => course.SectionID !== selectedCourse));
-            setSelectedCourse('');
+            const studentID = localStorage.getItem('studentID');
+            await axios.post("http://localhost:3000/drop-course", {
+                studentID,
+                sectionID
+            });
+            alert("Dropped successfully");
+            setEnrolledCourses(enrolledCourses.filter(course => course.SectionID !== sectionID));
         } catch (err) {
-            console.log(err);
+            console.error("Error dropping course:", err); // Debug log
         }
     };
 
     return (
         <div className="drop-container">
-            <header className="drop-header">
-                <h1>Drop Course</h1>
-            </header>
-            <div className="drop-content">
-                <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
-                    <option value="">Select a course to drop</option>
-                    {courses.map(course => (
-                        <option key={course.SectionID} value={course.SectionID}>
-                            {course.CourseName}
-                        </option>
-                    ))}
-                </select>
-                <button onClick={handleDrop} disabled={!selectedCourse}>Drop</button>
-            </div>
+            <h1>Drop a Course</h1>
+            <ul>
+                {enrolledCourses.map(course => (
+                    <li key={course.SectionID}>
+                        {course.courseName} - Room: {course.Room}, Time: {course.Time}, Days: {course.Days}, Semester: {course.Semester}
+                        <button onClick={() => handleDropCourse(course.SectionID)}>Drop</button>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };
 
 export default Drop;
+
 
