@@ -14,6 +14,13 @@ import Instructor from "./pages/Instructor.jsx"
 import Registration from "./pages/Registration.jsx";
 import Section from "./pages/Section.jsx";
 
+// THINGS I CHANGED
+import EnrollCourse from './pages/EnrollCourse.jsx';
+import DropCourse from "./pages/DropCourse.jsx"
+import SwapCourse from "./pages/SwapCourse.jsx"
+import "./style.css"
+
+
 
 
 
@@ -29,6 +36,12 @@ function App() {
           <Route path="/instructor" element={<Instructor />} />
           <Route path="/registration" element={<Registration />} />
           <Route path="/section" element={<Section />} />
+          
+
+          // MELVIN IS WORKING ON ENROLL, DROP, and SWAP
+          <Route path="/enroll" element={<EnrollCourse />} /> // ADD ID TO IT 
+          <Route path="/drop" element={<DropCourse />} />   // ADD ID TO IT 
+          <Route path="/swap" element={<SwapCourse />} />   // ADD ID TO IT 
           
         </Routes>
       </BrowserRouter>
