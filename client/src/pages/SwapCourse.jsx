@@ -1,11 +1,18 @@
+// Import necessary modules from React, Axios, and React Router DOM
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
+// Define the SwapCourse component
 const SwapCourse = () => {
+  // Get the current location and navigation functions from React Router
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Extract the student object from the location state
   const { student } = location.state || {};
+
+  // State variables to manage the student's schedule, selected current course, majors, selected major, courses, and selected new course
   const [schedule, setSchedule] = useState([]);
   const [selectedCurrentCourse, setSelectedCurrentCourse] = useState("");
   const [majors, setMajors] = useState([]);
@@ -13,12 +20,14 @@ const SwapCourse = () => {
   const [courses, setCourses] = useState([]);
   const [selectedNewCourse, setSelectedNewCourse] = useState("");
 
+  // useEffect hook to fetch majors and the student's current schedule when the component mounts
   useEffect(() => {
-    // Fetch majors and current schedule from the backend
+    // Function to fetch the majors and schedule from the backend
     const fetchData = async () => {
       try {
         const majorsResponse = await axios.get("http://localhost:8800/course-majors");
         const scheduleResponse = await axios.get(`http://localhost:8800/schedule/${student.StudentID}`);
+        // Update the state with the fetched data
         setMajors(majorsResponse.data);
         setSchedule(scheduleResponse.data);
       } catch (error) {
@@ -29,12 +38,14 @@ const SwapCourse = () => {
     fetchData();
   }, [student.StudentID]);
 
+  // useEffect hook to fetch courses when a major is selected
   useEffect(() => {
     if (selectedMajor) {
-      // Fetch courses based on selected major
+      // Function to fetch courses based on the selected major
       const fetchCourses = async () => {
         try {
           const response = await axios.get(`http://localhost:8800/courses/${selectedMajor}`);
+          // Update the state with the fetched courses
           setCourses(response.data);
         } catch (error) {
           console.error("Error fetching courses:", error);
@@ -45,8 +56,10 @@ const SwapCourse = () => {
     }
   }, [selectedMajor]);
 
+  // Function to handle course swapping
   const handleSwap = async () => {
     try {
+      // Send a POST request to swap the current course with the new course
       await axios.post("http://localhost:8800/swap", {
         studentId: student.StudentID,
         currentCourseName: selectedCurrentCourse,
@@ -55,6 +68,7 @@ const SwapCourse = () => {
       // Refetch the updated schedule
       const updatedScheduleResponse = await axios.get(`http://localhost:8800/schedule/${student.StudentID}`);
       setSchedule(updatedScheduleResponse.data);
+      // Clear the selected current and new courses
       setSelectedCurrentCourse("");
       setSelectedNewCourse("");
     } catch (error) {
@@ -62,17 +76,22 @@ const SwapCourse = () => {
     }
   };
 
+  // Function to handle logout
   const handleLogout = () => {
+    // Navigate to the home page
     navigate("/");
   };
 
+  // Render the component
   return (
     <div className="swap-course">
+      {/* Button to navigate to the student home page */}
       <button className="home-button" onClick={() => navigate("/student-home", { state: { student } })}>
         Home
       </button>
       <h1>Swap Course</h1>
       <div className="left-section">
+        {/* Dropdown to select the current course to swap */}
         <select
           value={selectedCurrentCourse}
           onChange={(e) => setSelectedCurrentCourse(e.target.value)}
@@ -84,6 +103,7 @@ const SwapCourse = () => {
             </option>
           ))}
         </select>
+        {/* Dropdown to select a major */}
         <select
           value={selectedMajor}
           onChange={(e) => setSelectedMajor(e.target.value)}
@@ -95,6 +115,7 @@ const SwapCourse = () => {
             </option>
           ))}
         </select>
+        {/* Dropdown to select the new course */}
         <select
           value={selectedNewCourse}
           onChange={(e) => setSelectedNewCourse(e.target.value)}
@@ -106,10 +127,12 @@ const SwapCourse = () => {
             </option>
           ))}
         </select>
+        {/* Button to swap the courses */}
         <button onClick={handleSwap}>Swap</button>
       </div>
       <div className="right-section">
         <h2>Current Schedule</h2>
+        {/* Table to display the student's current schedule */}
         <table>
           <thead>
             <tr>
@@ -137,9 +160,11 @@ const SwapCourse = () => {
           </tbody>
         </table>
       </div>
+      {/* Button to logout */}
       <button className="logout-button" onClick={handleLogout}>Logout</button>
     </div>
   );
 };
 
+// Export the SwapCourse component as the default export
 export default SwapCourse;
