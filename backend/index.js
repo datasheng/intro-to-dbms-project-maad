@@ -1,314 +1,276 @@
-import express from "express" 
-import mysql from "mysql"
-import cors from "cors"
+import express from "express";
+import mysql from "mysql2";
+import cors from "cors";
 
-const app = express()
+const app = express();
+app.use(cors());
 app.use(express.json());
 
-//Connection to MySQL
 const db = mysql.createConnection({
-    host:"localhost",
-    user:"root",
-    password:"GermanVoronovich",
-    database:"enrollhub"
-})
-
-
-app.use(express.json())
-app.use(cors())
-
-app.get("/", (req,res)=>{
-    res.json("hello it's we are backend!")
-})
-
-//it test function, works!! Exces Books SQL data example
-app.get("/books", (req,res)=>{
-    const q = "SELECT * FROM books"
-    db.query(q,(err,data)=>{
-        if(err) return res.json(err)
-            return res.json(data)
-    })
-})
-
-// Fetch students data - works
-app.get("/student", (req, res) => {
-    const q = "SELECT * FROM student";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
+  host: "localhost",
+  user: "root",
+  password: "...",  // <---- insert your password here
+  database: "enrollment",  // <---- get database set up through the query statements
 });
 
-//Fetch courses data
-app.get("/course", (req, res) => {
-    const q = "SELECT * FROM course";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
+app.get("/", (req, res) => {
+  res.json("hello");
 });
 
-// Fetch instructors data 
-app.get("/instructor", (req, res) => {
-    const q = "SELECT * FROM instructor";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
+app.get("/majors", (req, res) => {
+  const q = "SELECT DISTINCT StudentMajor FROM student";
+  db.query(q, (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.json(err);
+    }
+    return res.json(data);
+  });
 });
 
-// Fetch registration data 
-app.get("/registration", (req, res) => {
-    const q = "SELECT * FROM registration";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
+app.get("/schools", (req, res) => {
+  const q = "SELECT DISTINCT SchoolName FROM school";
+  db.query(q, (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.json(err);
+    }
+    return res.json(data);
+  });
 });
 
-// Fetch sections data 
-app.get("/section", (req, res) => {
-    const q = "SELECT * FROM section";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
+app.post("/student-login", (req, res) => {
+  const { studentName, studentId, major, schoolName } = req.body;
+  const q = "SELECT * FROM student WHERE StudentName = ? AND StudentID = ? AND StudentMajor = ? AND SchoolName = ?";
+  db.query(q, [studentName, studentId, major, schoolName], (err, data) => {
+    if (err) return res.json(err);
+    if (data.length > 0) {
+      return res.json({ success: true, student: data[0] });
+    } else {
+      return res.json({ success: false, message: "Invalid credentials" });
+    }
+  });
 });
 
-
-// Login route
-app.post("/login", (req, res) => {
-    const { studentID, fullName, major } = req.body;
-    const q = "SELECT * FROM student WHERE studentID = ? AND Name = ? AND Majors = ?";
-    db.query(q, [studentID, fullName, major], (err, data) => {
-        if (err) return res.json(err);
-        if (data.length > 0) {
-            const student = data[0];
-            return res.json({
-                status: "success",
-                studentID: student.studentID,
-                fullName: student.Name,
-                major: student.Majors
-            });
-        } else {
-            return res.json({ status: "fail", message: "Invalid credentials" });
-        }
-    });
+app.post("/admin-login", (req, res) => {
+  const { schoolName, schoolId, licenseId } = req.body;
+  console.log(`Received admin login request for ${schoolName}, ${schoolId}, ${licenseId}`);
+  const q = "SELECT * FROM school WHERE SchoolName = ? AND SchoolID = ? AND LicenseID = ?";
+  db.query(q, [schoolName, schoolId, licenseId], (err, data) => {
+    if (err) {
+      console.error("Error executing query", err);
+      return res.json(err);
+    }
+    if (data.length > 0) {
+      console.log("Admin login successful", data[0]);
+      return res.json({ success: true, admin: data[0] });
+    } else {
+      console.log("Admin login failed: Invalid credentials");
+      return res.json({ success: false, message: "Invalid credentials" });
+    }
+  });
 });
 
-// Fetch student details by ID
-app.get("/student/:id", (req, res) => {
-    const studentID = req.params.id;
-    const q = "SELECT * FROM student WHERE studentID = ?";
-    db.query(q, [studentID], (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data[0]);
-    });
+app.get("/course-majors", (req, res) => {
+  const q = "SELECT DISTINCT CourseMajor FROM course";
+  db.query(q, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 });
 
-// Fetch schedule for a student
-app.get("/schedule/:studentID", (req, res) => {
-    const studentID = req.params.studentID;
-    const q = `
-        SELECT course.courseName, section.Room, section.Time, section.Days, section.Semester
-        FROM registration
-        JOIN section ON registration.SectionID = section.SectionID
-        JOIN course ON section.courseID = course.courseID
-        WHERE registration.studentID = ?
-    `;
-    db.query(q, [studentID], (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
+app.get("/courses/:major", (req, res) => {
+  const major = req.params.major;
+  const q = "SELECT CourseName FROM course WHERE CourseMajor = ?";
+  db.query(q, [major], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 });
 
-
-// Fetch available courses for a student
-app.get("/available-courses/:studentID", (req, res) => {
-    const studentID = req.params.studentID;
-    console.log("Fetching available courses for studentID:", studentID); // Debug log
-    const q = `
-        SELECT course.courseID, course.courseName, course.Credit 
-        FROM course 
-        WHERE course.courseID NOT IN (
-            SELECT section.courseID 
-            FROM registration 
-            JOIN section ON registration.SectionID = section.SectionID 
-            WHERE registration.studentID = ?
-        )
-    `;
-    db.query(q, [studentID], (err, data) => {
-        if (err) {
-            console.error("Error fetching available courses:", err); // Debug log
-            return res.json(err);
-        }
-        console.log("Available courses data:", data); // Debug log
-        return res.json(data);
-    });
+app.get("/schedule/:studentId", (req, res) => {
+  const studentId = req.params.studentId;
+  const q = `
+    SELECT c.CourseName, s.Time, s.Days, s.Room, s.SectionID, s.Semester, t.TeacherName
+    FROM registration r
+    JOIN section s ON r.SectionID = s.SectionID
+    JOIN course c ON s.CourseID = c.CourseID
+    JOIN teacher t ON s.TeacherID = t.TeacherID
+    WHERE r.StudentID = ?
+  `;
+  db.query(q, [studentId], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 });
 
-// Fetch enrolled courses for a student
-app.get("/enrolled-courses/:studentID", (req, res) => {
-    const studentID = req.params.studentID;
-    const q = `
-        SELECT course.courseID, course.courseName, section.SectionID, section.Room, section.Time, section.Days, section.Semester
-        FROM registration
-        JOIN section ON registration.SectionID = section.SectionID
-        JOIN course ON section.courseID = course.courseID
-        WHERE registration.studentID = ?
-    `;
-    db.query(q, [studentID], (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
+app.get("/students/:schoolId", (req, res) => {
+  const schoolId = req.params.schoolId;
+  const q = "SELECT * FROM student WHERE SchoolID = ?";
+  db.query(q, [schoolId], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 });
 
-// Drop a course
-app.post("/drop-course", (req, res) => {
-    const { studentID, sectionID } = req.body;
-    const q = "DELETE FROM registration WHERE studentID = ? AND SectionID = ?";
-    db.query(q, [studentID, sectionID], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("Dropped successfully");
-    });
-});
-
-
-//For the SWAP page course fetch all courses
-app.get("/all-courses", (req, res) => {
-    const q = "SELECT * FROM course";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
-});
-
-//For the SWAP course page Fetch all courses
-app.get("/all-courses", (req, res) => {
-    const q = "SELECT * FROM course";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
-});
-
-//For page new scheduale 
-// Fetch available courses and their sections
-app.get("/available-courses-sections", (req, res) => {
-    const q = `
-        SELECT course.courseID, course.courseName, section.SectionID, section.Room, section.Time, section.Days, section.Semester
-        FROM course
-        JOIN section ON course.courseID = section.courseID
-    `;
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
-});
-//For page new scheduale 
-// Save new schedule
-app.post("/save-schedule", (req, res) => {
-    const { studentID, sections } = req.body;
-
-    const deleteQuery = "DELETE FROM registration WHERE studentID = ?";
-    const insertQuery = "INSERT INTO registration (studentID, SectionID) VALUES ?";
-
-    db.beginTransaction(err => {
-        if (err) return res.json(err);
-
-        db.query(deleteQuery, [studentID], (err, result) => {
-            if (err) {
-                return db.rollback(() => {
-                    res.json(err);
-                });
-            }
-
-            const values = sections.map(sectionID => [studentID, sectionID]);
-            db.query(insertQuery, [values], (err, result) => {
-                if (err) {
-                    return db.rollback(() => {
-                        res.json(err);
-                    });
-                }
-
-                db.commit(err => {
-                    if (err) {
-                        return db.rollback(() => {
-                            res.json(err);
-                        });
-                    }
-                    res.json("Schedule saved successfully");
-                });
-            });
-        });
-    });
-});
-
-
-/*
-// Fetch available courses for a student
-app.get("/available-courses/:studentID", (req, res) => {
-    const studentID = req.params.studentID;
-    const q = `
-        SELECT course.courseID, course.courseName, course.Credit 
-        FROM course 
-        WHERE course.courseID NOT IN (
-            SELECT section.courseID 
-            FROM registration 
-            JOIN section ON registration.SectionID = section.SectionID 
-            WHERE registration.studentID = ?
-        )
-    `;
-    db.query(q, [studentID], (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data);
-    });
-});
-
-// Enroll in a course
 app.post("/enroll", (req, res) => {
-    const { studentID, courseID, sectionID } = req.body;
-    const q = `
-        INSERT INTO registration (studentID, SectionID) 
-        VALUES (?, ?)
+  const { studentId, courseName } = req.body;
+
+  // First, find the course ID for the given course name
+  const findCourseIdQuery = "SELECT CourseID FROM course WHERE CourseName = ?";
+  db.query(findCourseIdQuery, [courseName], (err, courseResult) => {
+    if (err) {
+      console.error("Error finding course ID:", err);
+      return res.status(500).json({ error: "Error finding course ID" });
+    }
+
+    if (courseResult.length === 0) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const courseId = courseResult[0].CourseID;
+
+    // Then, find an available section for the course
+    const findSectionIdQuery = "SELECT SectionID FROM section WHERE CourseID = ? LIMIT 1";
+    db.query(findSectionIdQuery, [courseId], (err, sectionResult) => {
+      if (err) {
+        console.error("Error finding section ID:", err);
+        return res.status(500).json({ error: "Error finding section ID" });
+      }
+
+      if (sectionResult.length === 0) {
+        return res.status(404).json({ error: "Section not found" });
+      }
+
+      const sectionId = sectionResult[0].SectionID;
+
+      // Generate a new RegistrationID (simple increment strategy)
+      const getMaxRegistrationIdQuery = "SELECT MAX(RegistrationID) as maxId FROM registration";
+      db.query(getMaxRegistrationIdQuery, (err, maxResult) => {
+        if (err) {
+          console.error("Error getting max RegistrationID:", err);
+          return res.status(500).json({ error: "Error getting max RegistrationID" });
+        }
+
+        const newRegistrationId = (maxResult[0].maxId || 0) + 1;
+
+        // Finally, insert a new registration record
+        const enrollQuery = "INSERT INTO registration (RegistrationID, SectionID, StudentID) VALUES (?, ?, ?)";
+        db.query(enrollQuery, [newRegistrationId, sectionId, studentId], (err, enrollResult) => {
+          if (err) {
+            console.error("Error enrolling in course:", err);
+            return res.status(500).json({ error: "Error enrolling in course" });
+          }
+
+          // Return the new schedule entry to update the front-end
+          const newScheduleQuery = `
+            SELECT c.CourseName, s.Time, s.Days, s.Room, s.SectionID, s.Semester, t.TeacherName
+            FROM section s
+            JOIN course c ON s.CourseID = c.CourseID
+            JOIN teacher t ON s.TeacherID = t.TeacherID
+            WHERE s.SectionID = ?
+          `;
+          db.query(newScheduleQuery, [sectionId], (err, newScheduleResult) => {
+            if (err) {
+              console.error("Error fetching new schedule:", err);
+              return res.status(500).json({ error: "Error fetching new schedule" });
+            }
+            return res.json(newScheduleResult[0]);
+          });
+        });
+      });
+    });
+  });
+});
+
+app.post("/drop", (req, res) => {
+  const { studentId, courseName } = req.body;
+
+  // First, find the course ID for the given course name
+  const findCourseIdQuery = "SELECT CourseID FROM course WHERE CourseName = ?";
+  db.query(findCourseIdQuery, [courseName], (err, courseResult) => {
+    if (err) return res.json(err);
+    const courseId = courseResult[0].CourseID;
+
+    // Then, find the section for the course and student
+    const findSectionIdQuery = `
+      SELECT r.SectionID, r.RegistrationID 
+      FROM registration r
+      JOIN section s ON r.SectionID = s.SectionID
+      WHERE r.StudentID = ? AND s.CourseID = ?
     `;
-    db.query(q, [studentID, sectionID], (err, data) => {
+    db.query(findSectionIdQuery, [studentId, courseId], (err, sectionResult) => {
+      if (err) return res.json(err);
+      const sectionId = sectionResult[0].SectionID;
+      const registrationId = sectionResult[0].RegistrationID;
+
+      // Finally, delete the registration record
+      const dropQuery = "DELETE FROM registration WHERE RegistrationID = ? AND SectionID = ? AND StudentID = ?";
+      db.query(dropQuery, [registrationId, sectionId, studentId], (err, dropResult) => {
         if (err) return res.json(err);
-        return res.json("Enrolled successfully");
+        return res.json({ success: true });
+      });
     });
+  });
 });
-*/
 
-/*
-app.post("/student/:id/drop", (req, res) => {
-    const studentID = req.params.id;
-    const { sectionID } = req.body;
-    const q = "DELETE FROM registration WHERE studentID = ? AND SectionID = ?";
-    db.query(q, [studentID, sectionID], (err, data) => {
+app.post("/swap", (req, res) => {
+  const { studentId, currentCourseName, newCourseName } = req.body;
+
+  // First, drop the current course
+  const findCurrentCourseIdQuery = "SELECT CourseID FROM course WHERE CourseName = ?";
+  db.query(findCurrentCourseIdQuery, [currentCourseName], (err, currentCourseResult) => {
+    if (err) return res.json(err);
+    const currentCourseId = currentCourseResult[0].CourseID;
+
+    const findCurrentSectionIdQuery = `
+      SELECT r.SectionID, r.RegistrationID 
+      FROM registration r
+      JOIN section s ON r.SectionID = s.SectionID
+      WHERE r.StudentID = ? AND s.CourseID = ?
+    `;
+    db.query(findCurrentSectionIdQuery, [studentId, currentCourseId], (err, currentSectionResult) => {
+      if (err) return res.json(err);
+      const currentSectionId = currentSectionResult[0].SectionID;
+      const currentRegistrationId = currentSectionResult[0].RegistrationID;
+
+      const dropQuery = "DELETE FROM registration WHERE RegistrationID = ? AND SectionID = ? AND StudentID = ?";
+      db.query(dropQuery, [currentRegistrationId, currentSectionId, studentId], (err, dropResult) => {
         if (err) return res.json(err);
-        return res.json({ status: "success", message: "Course dropped successfully" });
+
+        // Then, enroll in the new course
+        const findNewCourseIdQuery = "SELECT CourseID FROM course WHERE CourseName = ?";
+        db.query(findNewCourseIdQuery, [newCourseName], (err, newCourseResult) => {
+          if (err) return res.json(err);
+          const newCourseId = newCourseResult[0].CourseID;
+
+          const findNewSectionIdQuery = "SELECT SectionID FROM section WHERE CourseID = ? LIMIT 1";
+          db.query(findNewSectionIdQuery, [newCourseId], (err, newSectionResult) => {
+            if (err) return res.json(err);
+            const newSectionId = newSectionResult[0].SectionID;
+
+            const getMaxRegistrationIdQuery = "SELECT MAX(RegistrationID) as maxId FROM registration";
+            db.query(getMaxRegistrationIdQuery, (err, maxResult) => {
+              if (err) {
+                console.error("Error getting max RegistrationID:", err);
+                return res.status(500).json({ error: "Error getting max RegistrationID" });
+              }
+
+              const newRegistrationId = (maxResult[0].maxId || 0) + 1;
+
+              const enrollQuery = "INSERT INTO registration (RegistrationID, SectionID, StudentID) VALUES (?, ?, ?)";
+              db.query(enrollQuery, [newRegistrationId, newSectionId, studentId], (err, enrollResult) => {
+                if (err) return res.json(err);
+                return res.json({ success: true });
+              });
+            });
+          });
+        });
+      });
     });
-});
-*/
-
-
-
-app.post("/books", (req,res)=>{
-    const q = "INSERT INTO books (`title`, `desc`, `cover`) VALUES (?)";
-    const values = [
-        req.body.title,
-        req.body.desc,
-        //req.body.price,
-        req.body.cover,
-    ];
-
-    db.query(q,[values], (err, data)=>{
-        if(err) return res.json(err)
-            return res.json("Book has been created succesfuly.");
-    });
+  });
 });
 
-
-app.listen(3000, ()=>{
-    console.log ("Connected to backend!")
-})
+app.listen(8800, () => {
+  console.log("Connected to backend...");
+});
